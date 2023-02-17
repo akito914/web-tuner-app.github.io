@@ -9,7 +9,7 @@ var spect_view  = {center_note: 69, cents_span: 200, db_max: 0, db_min: -160, fr
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-canvas.addEventListener('click', mouseClickedEvent, false);
+canvas.addEventListener('mousedown', mouseClickedEvent, false);
 
 navigator.mediaDevices.getUserMedia({
   audio: true,
@@ -124,6 +124,9 @@ navigator.mediaDevices.getUserMedia({
       }
       drawContext.lineTo(i * spect_pos.w / analyserNode.fftSize + spect_pos.x, spect_pos.h/2 + spect_pos.y - timeseries[i]*spect_pos.h/2);
     }
+    drawContext.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+    drawContext.lineWidth = 1;
+    drawContext.stroke();
 
     fs_str = 'Sampling = ' + audioContext.sampleRate.toString() + ' Hz';
     drawContext.font = '20px sans-serif';
@@ -142,10 +145,6 @@ navigator.mediaDevices.getUserMedia({
     drawContext.textAlign = 'right';
     drawContext.fillStyle = 'white';
     drawContext.fillText(span_str, spect_pos.w + spect_pos.x, spect_pos.y + spect_pos.h + 40);
-
-    drawContext.strokeStyle = 'lime';
-    drawContext.lineWidth = 0.2;
-    drawContext.stroke();
 
     requestAnimationFrame(draw);
   }
@@ -170,18 +169,28 @@ function getMousePosition(canvas, evt) {
 
 function mouseClickedEvent(evt) {
   mouse_pos = getMousePosition(canvas, evt);
-  if(mouse_pos.x < canvas.width / 2)
+  if(mouse_pos.y <= spect_pos.y + spect_pos.h)
   {
-    spect_view.center_note += -1;
+    if(mouse_pos.x < canvas.width / 2)
+    {
+      spect_view.center_note += -1;
+    }
+    else
+    {
+      spect_view.center_note += +1;
+    }
   }
-  else
+  else if(mouse_pos.x >= spect_pos.x + spect_pos.w - 130)
   {
-    spect_view.center_note += +1;
+    a4freq = parseFloat(window.prompt("Enter A4 frequency.", spect_view.freq_A4.toString()));
+    if(!isNaN(a4freq))
+    {
+      spect_view.freq_A4 = a4freq;
+    }
   }
 }
 
 window.onmousewheel = mouseZoom;
-
 
 function mouseZoom(event) {
 	if(event.wheelDelta > 0){
